@@ -1,8 +1,6 @@
 # Site settings
 title: Writing
-email: ackernaut@gmail.com
-description: > # this means to ignore newlines until "baseurl:"
-  The Ackernaut writes on many topics: design, code, typography, product, brand, methodology
+description: "In which the Ackernaut exercises his hand as a wordsmith"
 url:              http://writing.ackernaut.com
 permalink:        pretty
 twitter_username: ackernaut

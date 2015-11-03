@@ -1,53 +1,64 @@
 
-// Load plugins
-// ------------
+// Require
+// -------
 
-var gulp = require('gulp'),
+var del          = require('del'),
+    gulp         = require('gulp'),
     autoprefixer = require('gulp-autoprefixer'),
-    minifycss = require('gulp-minify-css'),
-    size = require('gulp-size'),
-    rename = require('gulp-rename'),
-    css = require('css'),
-    browserSync = require('browser-sync'),
-    browserReload = browserSync.reload;
+    minifycss    = require('gulp-minify-css'),
+    rename       = require('gulp-rename'),
+    sass         = require('gulp-sass'),
+    scsslint     = require('gulp-scsslint');
 
-gulp.task('css', function() {
-  gulp.src('./src/tachyons.css')
-    .pipe(size({gzip: false, showFiles: true, title:'basswork css'}))
-    .pipe(size({gzip: true, showFiles: true, title:'basswork gzipped css'}))
-    .pipe(gulp.dest('./css'))
+// Paths
+// -----
+
+var css     = 'assets/dist/css',
+    nodeDir = 'node_modules/',
+    styles  = 'assets/src/styles/**/*.scss';
+
+// Clean
+// -----
+
+gulp.task('clean', function (cb) {
+  del(['assets/dist/css/**/*'], cb);
+});
+
+// Default
+// -------
+
+gulp.task('default', ['clean', 'styles']);
+
+// Sass lint
+// ---------
+
+gulp.task('scsslint', function() {
+  return gulp.src(styles)
+    .pipe(scsslint('assets/src/styles/.scss-lint.yml'))
+    .pipe(scsslint.reporter());
+});
+
+// Styles
+// ------
+
+gulp.task('styles', function() {
+  return gulp.src(styles)
+    .pipe(sass({
+      includePaths: [
+        'node_modules'
+      ],
+      outputStyle: 'expanded'
+    }))
+    .pipe(autoprefixer())
+    .pipe(gulp.dest(css))
+    .pipe(rename({ suffix: '.min' }))
     .pipe(minifycss())
-    .pipe(rename({ extname: '.min.css' }))
-    .pipe(size({gzip: false, showFiles: true, title:'basswork minified'}))
-    .pipe(size({gzip: true, showFiles: true, title:'basswork minified'}))
-    .pipe(gulp.dest('./css'));
+    .pipe(gulp.dest(css));
 });
 
-// Initialize browser-sync which starts a static server also allows for
-// browsers to reload on filesave
-gulp.task('browser-sync', function() {
-    browserSync.init(null, {
-        server: {
-            baseDir: "./"
-        }
-    });
-});
+// Watch
+// -----
 
-// Function to call for reloading browsers
-gulp.task('bs-reload', function () {
-    browserSync.reload();
-});
-
-/*
-   DEFAULT TASK
-
- • Process css then auto-prefixes and lints outputted css
- • Starts a server on port 3000
- • Reloads browsers when you change html or sass files
-
-*/
-gulp.task('default', ['css', 'bs-reload', 'browser-sync'], function(){
-  gulp.start(['css', 'bs-reload']);
-  gulp.watch('src/*', ['css']);
-  gulp.watch(['*.html', './**/*.html'], ['bs-reload']);
+gulp.task('watch', function() {
+  gulp.watch(styles, ['styles']);
 });
